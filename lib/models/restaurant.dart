@@ -9,7 +9,6 @@ class Restaurant {
     required this.longitude,
   });
 
-  // Create a Restaurant from a Map (e.g., from Firebase)
   factory Restaurant.fromMap(Map<dynamic, dynamic> data) {
     return Restaurant(
       name: data['name'] as String,
