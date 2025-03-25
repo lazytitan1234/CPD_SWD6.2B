@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:foodfinder/views/stream_location_screen.dart';
+import 'package:foodfinder/views/select_destination_screen.dart';
 import 'package:foodfinder/services/geolocation_service.dart';
-import 'package:foodfinder/services/notification_service.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,15 +14,8 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   String locationMessage = "Location not available";
   final GeolocationService _geoService = GeolocationService();
-  final NotificationService _notificationService = NotificationService();
 
-  @override
-  void initState() {
-    super.initState();
-    _notificationService.init();
-  }
-
-  // Fetch the current location and update the state.
+  // Get current location and update state.
   Future<void> getLocation() async {
     try {
       Position position = await _geoService.getCurrentPosition();
@@ -35,35 +29,124 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  // Trigger a test local notification.
-  Future<void> sendTestNotification() async {
-    await _notificationService.scheduleNotification("Test Notification", "This is a test notification.", 5);
+  void _gotoStreamLocation() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const StreamLocationScreen()),
+    );
   }
+
+  void _gotoSelectDestination() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SelectDestinationScreen()),
+    );
+  }
+  
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Foodie Finder - Test Notifications"),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(locationMessage),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: getLocation,
-              child: const Text("Get Current Location"),
+    // Responsive layout using LayoutBuilder.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 600) {
+          // Small screen: Column layout.
+          return Scaffold(
+            appBar: AppBar(title: const Text('Foodie Finder')),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(locationMessage),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: getLocation,
+                    child: const Text('Get Current Location'),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _gotoStreamLocation,
+                    child: const Text('Live Location Updates'),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _gotoSelectDestination,
+                    child: const Text('Select Destination'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: sendTestNotification,
-              child: const Text("Send Test Notification"),
+          );
+        } else if (constraints.maxWidth < 1200) {
+          // Medium screen: Row layout.
+          return Scaffold(
+            appBar: AppBar(title: const Text('Foodie Finder')),
+            body: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(locationMessage),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: getLocation,
+                        child: const Text('Get Current Location'),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: _gotoStreamLocation,
+                        child: const Text('Live Location Updates'),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: _gotoSelectDestination,
+                        child: const Text('Select Destination'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
+          );
+        } else {
+          // Large screen: Grid layout.
+          return Scaffold(
+            appBar: AppBar(title: const Text('Foodie Finder')),
+            body: Center(
+              child: GridView.count(
+                crossAxisCount: 2,
+                padding: const EdgeInsets.all(20),
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 20,
+                children: [
+                  Container(
+                    color: Colors.orange[50],
+                    child: Center(child: Text(locationMessage)),
+                  ),
+                  ElevatedButton(
+                    onPressed: getLocation,
+                    child: const Text('Get Current Location'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _gotoStreamLocation,
+                    child: const Text('Live Location Updates'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _gotoSelectDestination,
+                    child: const Text('Select Destination'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+      },
     );
   }
 }
