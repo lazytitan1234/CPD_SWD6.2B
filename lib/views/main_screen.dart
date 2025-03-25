@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:foodfinder/views/stream_location_screen.dart';
 import 'package:foodfinder/views/select_destination_screen.dart';
+import 'package:foodfinder/views/restaurant_list_screen.dart';
 import 'package:foodfinder/services/geolocation_service.dart';
 
 class MainScreen extends StatefulWidget {
@@ -43,6 +44,12 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
   
+  void _gotoRestaurantList() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const RestaurantListScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +79,11 @@ class _MainScreenState extends State<MainScreen> {
                   ElevatedButton(
                     onPressed: _gotoSelectDestination,
                     child: const Text('Select Destination'),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _gotoRestaurantList,
+                    child: const Text('Restaurant List'),
                   ),
                 ],
               ),
@@ -108,6 +120,11 @@ class _MainScreenState extends State<MainScreen> {
                         onPressed: _gotoSelectDestination,
                         child: const Text('Select Destination'),
                       ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: _gotoRestaurantList,
+                        child: const Text('Restaurant List'),
+                      ),
                     ],
                   ),
                 ],
@@ -140,6 +157,10 @@ class _MainScreenState extends State<MainScreen> {
                   ElevatedButton(
                     onPressed: _gotoSelectDestination,
                     child: const Text('Select Destination'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _gotoRestaurantList,
+                    child: const Text('Restaurant List'),
                   ),
                 ],
               ),
