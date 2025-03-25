@@ -1,0 +1,2 @@
+C:/foodfinder/android/app/.cxx/Debug/3j5w6y33/x86/CMakeFiles/edit_cache.dir
+C:/foodfinder/android/app/.cxx/Debug/3j5w6y33/x86/CMakeFiles/rebuild_cache.dir
