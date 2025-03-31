@@ -1,19 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:firebase_database/firebase_database.dart';
 import '../models/restaurant.dart';
 
 class DatabaseService {
-  // Reference to the "restaurants" node using the Firebase SDK.
-  final DatabaseReference _dbRef = FirebaseDatabase.instance.ref("restaurants");
+  final String baseUrl = 'foodfinder-5553f-default-rtdb.europe-west1.firebasedatabase.app';
 
-  // Base URL for your Firebase Realtime Database.
-  final String _baseUrl = 'foodfinder-5553f-default-rtdb.europe-west1.firebasedatabase.app';
-
-  // Add a new restaurant to the database using an HTTP POST request.
-  Future<Map<String, dynamic>> addRestaurant(Restaurant restaurant) async {
-    final url = Uri.https(_baseUrl, 'restaurants.json');
-    final response = await http.post(
+  Future<void> addRestaurant(Restaurant restaurant) async {
+    final url = Uri.https(baseUrl, 'restaurants.json');
+    await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
@@ -22,22 +16,29 @@ class DatabaseService {
         'longitude': restaurant.longitude,
       }),
     );
-
-    // Decode the response which contains the generated key.
-    return json.decode(response.body) as Map<String, dynamic>;
   }
 
-  // Alternatively, you can add a restaurant using the Firebase SDK:
-  Future<void> addRestaurantSDK(Restaurant restaurant) async {
-    await _dbRef.push().set({
-      'name': restaurant.name,
-      'latitude': restaurant.latitude,
-      'longitude': restaurant.longitude,
-    });
+  Future<List<Restaurant>> fetchRestaurants() async {
+  final url = Uri.https(baseUrl, 'restaurants.json');
+  final response = await http.get(url);
+
+  final decoded = json.decode(response.body);
+  if (decoded == null) return [];
+
+  final Map<String, dynamic> data = decoded as Map<String, dynamic>;
+  final List<Restaurant> loadedRestaurants = [];
+
+  for (final entry in data.entries) {
+    final value = entry.value;
+    loadedRestaurants.add(
+      Restaurant(
+        name: value['name'],
+        latitude: (value['latitude'] as num).toDouble(),
+        longitude: (value['longitude'] as num).toDouble(),
+      ),
+    );
   }
 
-  // Get a stream of restaurant data from the Firebase Realtime Database.
-  Stream<DatabaseEvent> getRestaurantsStream() {
-    return _dbRef.onValue;
+  return loadedRestaurants;
   }
 }

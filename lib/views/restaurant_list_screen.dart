@@ -8,7 +8,7 @@ class RestaurantListScreen extends StatefulWidget {
   const RestaurantListScreen({super.key});
 
   @override
-  _RestaurantListScreenState createState() => _RestaurantListScreenState();
+  State<RestaurantListScreen> createState() => _RestaurantListScreenState();
 }
 
 class _RestaurantListScreenState extends State<RestaurantListScreen> {
@@ -17,6 +17,13 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
   Position? _currentPosition;
   double? _distance;
   Restaurant? _selectedRestaurant;
+  late Future<List<Restaurant>> _restaurantFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _restaurantFuture = _dbService.fetchRestaurants();
+  }
 
   // Calculate distance from current location to selected restaurant.
   Future<void> _calculateDistance(Restaurant restaurant) async {
@@ -43,48 +50,49 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Restaurant List"),
-      ),
-      body: StreamBuilder(
-        stream: _dbService.getRestaurantsStream(),
+      appBar: AppBar(title: const Text("Restaurant List")),
+      body: FutureBuilder<List<Restaurant>>(
+        future: _restaurantFuture,
         builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
-            final data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-            final List<Restaurant> restaurants = data.entries.map((entry) {
-              return Restaurant.fromMap(entry.value);
-            }).toList();
-
-            return Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: restaurants.length,
-                    itemBuilder: (context, index) {
-                      final restaurant = restaurants[index];
-                      return ListTile(
-                        title: Text(restaurant.name),
-                        subtitle: Text("Lat: ${restaurant.latitude}, Lon: ${restaurant.longitude}"),
-                        onTap: () => _calculateDistance(restaurant),
-                      );
-                    },
-                  ),
-                ),
-                if (_distance != null && _selectedRestaurant != null)
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      "Distance to ${_selectedRestaurant!.name}: ${(_distance! / 1000).toStringAsFixed(2)} km",
-                      style: const TextStyle(fontSize: 18),
-                    ),
-                  ),
-              ],
-            );
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
-          } else {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
+
+          if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
+
+          final restaurants = snapshot.data;
+
+          if (restaurants == null || restaurants.isEmpty) {
+            return const Center(child: Text("No restaurants found."));
+          }
+
+          return Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: restaurants.length,
+                  itemBuilder: (context, index) {
+                    final restaurant = restaurants[index];
+                    return ListTile(
+                      title: Text(restaurant.name),
+                      subtitle: Text("Lat: ${restaurant.latitude}, Lon: ${restaurant.longitude}"),
+                      onTap: () => _calculateDistance(restaurant),
+                    );
+                  },
+                ),
+              ),
+              if (_distance != null && _selectedRestaurant != null)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    "Distance to ${_selectedRestaurant!.name}: ${(_distance! / 1000).toStringAsFixed(2)} km",
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                ),
+            ],
+          );
         },
       ),
     );
