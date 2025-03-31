@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:foodfinder/views/stream_location_screen.dart';
 import 'package:foodfinder/views/select_destination_screen.dart';
 import 'package:foodfinder/views/restaurant_list_screen.dart';
+import 'package:foodfinder/views/add_restaurant_screen.dart';
 import 'package:foodfinder/services/geolocation_service.dart';
 
 class MainScreen extends StatefulWidget {
@@ -51,6 +52,13 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  void _gotoAddRestaurant() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddRestaurantScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Responsive layout using LayoutBuilder.
@@ -84,6 +92,11 @@ class _MainScreenState extends State<MainScreen> {
                   ElevatedButton(
                     onPressed: _gotoRestaurantList,
                     child: const Text('Restaurant List'),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _gotoAddRestaurant,
+                    child: const Text('Add Restaurant'),
                   ),
                 ],
               ),
@@ -125,6 +138,11 @@ class _MainScreenState extends State<MainScreen> {
                         onPressed: _gotoRestaurantList,
                         child: const Text('Restaurant List'),
                       ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: _gotoAddRestaurant,
+                        child: const Text('Add Restaurant'),
+                      ),
                     ],
                   ),
                 ],
@@ -161,6 +179,10 @@ class _MainScreenState extends State<MainScreen> {
                   ElevatedButton(
                     onPressed: _gotoRestaurantList,
                     child: const Text('Restaurant List'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _gotoAddRestaurant,
+                    child: const Text('Add Restaurant'),
                   ),
                 ],
               ),
