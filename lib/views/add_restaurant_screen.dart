@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
+import 'package:foodfinder/services/notification_service.dart';
 
 class AddRestaurantScreen extends StatefulWidget {
   const AddRestaurantScreen({super.key});
@@ -41,15 +42,21 @@ class _AddRestaurantScreenState extends State<AddRestaurantScreen> {
       }
 
       final position = await Geolocator.getCurrentPosition();
+
+      if (!mounted) return;
+
       setState(() {
         _latitude = position.latitude.toString();
         _longitude = position.longitude.toString();
         isLoadingLocation = false;
       });
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         isLoadingLocation = false;
       });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching location: $e')),
       );
@@ -70,7 +77,7 @@ class _AddRestaurantScreenState extends State<AddRestaurantScreen> {
       'restaurants.json',
     );
 
-    final response = await http.post(
+    await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
@@ -78,6 +85,13 @@ class _AddRestaurantScreenState extends State<AddRestaurantScreen> {
         'latitude': double.parse(_latitude),
         'longitude': double.parse(_longitude),
       }),
+    );
+
+    if (!mounted) return;
+
+    await NotificationService().showNow(
+      'Restaurant Added',
+      '$_enteredName was added successfully!',
     );
 
     if (!mounted) return;

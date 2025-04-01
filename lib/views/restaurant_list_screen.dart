@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import '../models/restaurant.dart';
 import '../services/database_service.dart';
 import '../services/geolocation_service.dart';
+import '../services/notification_service.dart'; // optional if using notification on delete
 
 class RestaurantListScreen extends StatefulWidget {
   const RestaurantListScreen({super.key});
@@ -39,6 +40,7 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
         _distance = distanceInMeters;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _distance = null;
       });
@@ -91,7 +93,7 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
                   itemBuilder: (context, index) {
                     final restaurant = restaurants[index];
                     return Dismissible(
-                      key: Key(restaurant.id ?? restaurant.name),
+                      key: Key(restaurant.id),
                       direction: DismissDirection.endToStart,
                       background: Container(
                         color: Colors.red,
@@ -100,7 +102,17 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
                         child: const Icon(Icons.delete, color: Colors.white),
                       ),
                       onDismissed: (direction) async {
-                        await _dbService.deleteRestaurant(restaurant.id!);
+                        await _dbService.deleteRestaurant(restaurant.id ?? '');
+                        if (!mounted) return;
+
+                        // Optional: Notify when deleted
+                        await NotificationService().showNow(
+                          'Restaurant Deleted',
+                          '${restaurant.name} was removed.',
+                        );
+
+                        if (!mounted) return;
+
                         _refreshRestaurants();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('${restaurant.name} deleted')),
