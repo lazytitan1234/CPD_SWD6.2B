@@ -5,40 +5,36 @@ import '../models/restaurant.dart';
 class DatabaseService {
   final String baseUrl = 'foodfinder-5553f-default-rtdb.europe-west1.firebasedatabase.app';
 
-  Future<void> addRestaurant(Restaurant restaurant) async {
-    final url = Uri.https(baseUrl, 'restaurants.json');
-    await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'name': restaurant.name,
-        'latitude': restaurant.latitude,
-        'longitude': restaurant.longitude,
-      }),
-    );
+  Future<void> deleteRestaurant(String id) async {
+    final url = Uri.https(baseUrl, 'restaurants/$id.json');
+    await http.delete(url);
   }
 
   Future<List<Restaurant>> fetchRestaurants() async {
-  final url = Uri.https(baseUrl, 'restaurants.json');
-  final response = await http.get(url);
+    final url = Uri.https(baseUrl, 'restaurants.json');
+    final response = await http.get(url);
 
-  final decoded = json.decode(response.body);
-  if (decoded == null) return [];
+    final decoded = json.decode(response.body);
+    if (decoded == null || decoded == 'null' || decoded is! Map<String, dynamic>) {
+      return [];
+    }
 
-  final Map<String, dynamic> data = decoded as Map<String, dynamic>;
-  final List<Restaurant> loadedRestaurants = [];
+    final Map<String, dynamic> data = decoded;
+    final List<Restaurant> loadedRestaurants = [];
 
-  for (final entry in data.entries) {
-    final value = entry.value;
-    loadedRestaurants.add(
-      Restaurant(
-        name: value['name'],
-        latitude: (value['latitude'] as num).toDouble(),
-        longitude: (value['longitude'] as num).toDouble(),
-      ),
-    );
-  }
+    for (final entry in data.entries) {
+      final id = entry.key;
+      final value = entry.value;
+      loadedRestaurants.add(
+        Restaurant(
+          id: id,
+          name: value['name'],
+          latitude: (value['latitude'] as num).toDouble(),
+          longitude: (value['longitude'] as num).toDouble(),
+        ),
+      );
+    }
 
-  return loadedRestaurants;
+    return loadedRestaurants;
   }
 }

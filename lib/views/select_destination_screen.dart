@@ -18,9 +18,9 @@ class _SelectDestinationScreenState extends State<SelectDestinationScreen> {
 
   // List of default restaurants.
   final List<Restaurant> _restaurants = [
-    Restaurant(name: "Mcdonals", latitude: 312.321341, longitude: -31.9321312),
-    Restaurant(name: "Point de view", latitude: 200.65489, longitude: -98.89485),
-    Restaurant(name: "KFC", latitude: 82.9898, longitude: -69.1234567),
+    Restaurant(name: "Mcdonals", latitude: 312.321341, longitude: -31.9321312, id: ''),
+    Restaurant(name: "Point de view", latitude: 200.65489, longitude: -98.89485, id: ''),
+    Restaurant(name: "KFC", latitude: 82.9898, longitude: -69.1234567, id: ''),
   ];
 
   // Calculate the distance from the current location to the selected restaurant.

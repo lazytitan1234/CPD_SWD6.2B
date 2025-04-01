@@ -25,7 +25,6 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
     _restaurantFuture = _dbService.fetchRestaurants();
   }
 
-  // Calculate distance from current location to selected restaurant.
   Future<void> _calculateDistance(Restaurant restaurant) async {
     try {
       _currentPosition = await _geoService.getCurrentPosition();
@@ -43,14 +42,30 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
       setState(() {
         _distance = null;
       });
-      print("Error calculating distance: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error calculating distance: $e")),
+      );
     }
+  }
+
+  void _refreshRestaurants() {
+    setState(() {
+      _restaurantFuture = _dbService.fetchRestaurants();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Restaurant List")),
+      appBar: AppBar(
+        title: const Text("Restaurant List"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshRestaurants,
+          )
+        ],
+      ),
       body: FutureBuilder<List<Restaurant>>(
         future: _restaurantFuture,
         builder: (context, snapshot) {
@@ -75,10 +90,27 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
                   itemCount: restaurants.length,
                   itemBuilder: (context, index) {
                     final restaurant = restaurants[index];
-                    return ListTile(
-                      title: Text(restaurant.name),
-                      subtitle: Text("Lat: ${restaurant.latitude}, Lon: ${restaurant.longitude}"),
-                      onTap: () => _calculateDistance(restaurant),
+                    return Dismissible(
+                      key: Key(restaurant.id ?? restaurant.name),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      onDismissed: (direction) async {
+                        await _dbService.deleteRestaurant(restaurant.id!);
+                        _refreshRestaurants();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('${restaurant.name} deleted')),
+                        );
+                      },
+                      child: ListTile(
+                        title: Text(restaurant.name),
+                        subtitle: Text("Lat: ${restaurant.latitude}, Lon: ${restaurant.longitude}"),
+                        onTap: () => _calculateDistance(restaurant),
+                      ),
                     );
                   },
                 ),
