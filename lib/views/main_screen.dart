@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:foodfinder/views/stream_location_screen.dart';
 import 'package:foodfinder/views/select_destination_screen.dart';
 import 'package:foodfinder/views/restaurant_list_screen.dart';
@@ -18,11 +19,42 @@ class _MainScreenState extends State<MainScreen> {
   String locationMessage = "Location not available";
   final GeolocationService _geoService = GeolocationService();
   final NotificationService _notificationService = NotificationService();
+  bool isMuted = false;
 
   @override
   void initState() {
     super.initState();
-    _notificationService.init();
+    _initNotifications();
+    _loadMuteSetting();
+  }
+
+  Future<void> _initNotifications() async {
+    await _notificationService.init();
+    await _notificationService.requestPermission();
+  }
+
+  Future<void> _loadMuteSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isMuted = prefs.getBool('notificationsMuted') ?? false;
+    });
+  }
+
+  Future<void> _toggleMute() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isMuted = !isMuted;
+      prefs.setBool('notificationsMuted', isMuted);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isMuted ? 'Notifications muted' : 'Notifications unmuted',
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   Future<void> getLocation() async {
@@ -67,14 +99,6 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  void _sendTestNotification() {
-    _notificationService.scheduleNotification(
-      'Food Alert',
-      'Time to check out a new restaurant!',
-      5,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,9 +106,12 @@ class _MainScreenState extends State<MainScreen> {
         title: const Text('Foodie Finder'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: _sendTestNotification,
-          )
+            icon: Icon(
+              isMuted ? Icons.notifications_off : Icons.notifications_active,
+            ),
+            tooltip: isMuted ? 'Unmute Notifications' : 'Mute Notifications',
+            onPressed: _toggleMute,
+          ),
         ],
       ),
       body: LayoutBuilder(

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:foodfinder/services/notification_service.dart';
 
 class AddRestaurantScreen extends StatefulWidget {
@@ -42,28 +43,23 @@ class _AddRestaurantScreenState extends State<AddRestaurantScreen> {
       }
 
       final position = await Geolocator.getCurrentPosition();
-
-      if (!mounted) return;
-
       setState(() {
         _latitude = position.latitude.toString();
         _longitude = position.longitude.toString();
         isLoadingLocation = false;
       });
     } catch (e) {
-      if (!mounted) return;
-
       setState(() {
         isLoadingLocation = false;
       });
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching location: $e')),
       );
     }
   }
 
-  void _saveRestaurant() async {
+  Future<void> _saveRestaurant() async {
     if (!_formKey.currentState!.validate()) return;
 
     _formKey.currentState!.save();
@@ -89,12 +85,16 @@ class _AddRestaurantScreenState extends State<AddRestaurantScreen> {
 
     if (!mounted) return;
 
-    await NotificationService().showNow(
-      'Restaurant Added',
-      '$_enteredName was added successfully!',
-    );
+    //  Respect mute setting before showing notification
+    final prefs = await SharedPreferences.getInstance();
+    final isMuted = prefs.getBool('notificationsMuted') ?? false;
 
-    if (!mounted) return;
+    if (!isMuted) {
+      await NotificationService().showNow(
+        'Restaurant Added',
+        '$_enteredName was added successfully!',
+      );
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Restaurant added successfully!')),
