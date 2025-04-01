@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:foodfinder/views/stream_location_screen.dart';
-import 'package:foodfinder/views/select_destination_screen.dart';
+
 import 'package:foodfinder/views/restaurant_list_screen.dart';
 import 'package:foodfinder/views/add_restaurant_screen.dart';
 import 'package:foodfinder/services/geolocation_service.dart';
@@ -30,7 +29,7 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _initNotifications() async {
     await _notificationService.init();
-    await _notificationService.requestPermission();
+    await _notificationService.requestPermission(); // ask for permissions
   }
 
   Future<void> _loadMuteSetting() async {
@@ -71,20 +70,6 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  void _gotoStreamLocation() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const StreamLocationScreen()),
-    );
-  }
-
-  void _gotoSelectDestination() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SelectDestinationScreen()),
-    );
-  }
-
   void _gotoRestaurantList() {
     Navigator.push(
       context,
@@ -103,7 +88,23 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Foodie Finder'),
+        title: GestureDetector(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                content: Image.asset('assets/images/easter_egg.png'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            );
+          },
+          child: const Text('Food Finder'),
+        ),
         actions: [
           IconButton(
             icon: Icon(
@@ -136,16 +137,6 @@ class _MainScreenState extends State<MainScreen> {
                   ],
                 ),
               ),
-            ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.gps_fixed),
-              label: const Text('Live Location Updates'),
-              onPressed: _gotoStreamLocation,
-            ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.place),
-              label: const Text('Select Destination'),
-              onPressed: _gotoSelectDestination,
             ),
             ElevatedButton.icon(
               icon: const Icon(Icons.restaurant_menu),
