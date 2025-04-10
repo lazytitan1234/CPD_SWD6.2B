@@ -29,7 +29,7 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _initNotifications() async {
     await _notificationService.init();
-    await _notificationService.requestPermission(); // ask for permissions
+    await _notificationService.requestPermission();
   }
 
   Future<void> _loadMuteSetting() async {
@@ -177,12 +177,16 @@ class _MainScreenState extends State<MainScreen> {
               ),
             );
           } else {
-            return GridView.count(
-              crossAxisCount: 2,
-              padding: const EdgeInsets.all(20),
-              crossAxisSpacing: 20,
-              mainAxisSpacing: 20,
-              children: children,
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Wrap(
+                  spacing: 24,
+                  runSpacing: 24,
+                  alignment: WrapAlignment.center,
+                  children: children,
+                ),
+              ),
             );
           }
         },
